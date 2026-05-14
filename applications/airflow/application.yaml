@@ -19,13 +19,14 @@ spec:
           useHelmHooks: false
           applyCustomEnv: false
           jobAnnotations: {}
-          users:
-            - username: admin
-              password: admin
-              role: Admin
-              email: admin@example.com
-              firstName: Admin
-              lastName: User
+          enabled: true
+          defaultUser:
+            username: admin
+            password: admin
+            role: Admin
+            email: admin@example.com
+            firstName: Admin
+            lastName: User
 
         # Config needed when deploying as part of ArgoCD
         migrateDatabaseJob:
