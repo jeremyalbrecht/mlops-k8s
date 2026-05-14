@@ -8,9 +8,6 @@ on:
       - ".github/workflows/build-worker.yml"
   workflow_dispatch:
 
-env:
-  IMAGE: ttl.sh/helical-mlops-worker
-
 jobs:
   build-and-push:
     name: Build multi-arch image
@@ -35,6 +32,6 @@ jobs:
           file: ./worker/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: 12h
+          tags: ttl.sh/helical-mlops-worker:12h
           cache-from: type=gha
           cache-to: type=gha,mode=max
