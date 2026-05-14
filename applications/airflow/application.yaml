@@ -11,6 +11,7 @@ spec:
     targetRevision: 1.21.0
     helm:
       valuesObject:
+        useStandardNaming: true
         executor: KubernetesExecutor
 
         # Create initial admin user via the recommended job
