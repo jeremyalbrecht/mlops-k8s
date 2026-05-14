@@ -40,7 +40,7 @@ spec:
           gitSync:
             enabled: true
             repo: https://github.com/jeremyalbrecht/mlops-k8s.git
-            branch: main
+            branch: master
             rev: HEAD
             depth: 1
             maxFailures: 3
