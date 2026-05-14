@@ -1,0 +1,74 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: airflow-helm
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://airflow.apache.org
+    chart: airflow
+    targetRevision: 1.21.0
+    helm:
+      valuesObject:
+        executor: KubernetesExecutor
+
+        # Create initial admin user via the recommended job
+        createUserJob:
+          useHelmHooks: false
+          applyCustomEnv: false
+          jobAnnotations: {}
+          users:
+            - username: admin
+              password: admin
+              role: Admin
+              email: admin@example.com
+              firstName: Admin
+              lastName: User
+
+        # Config needed when deploying as part of ArgoCD
+        migrateDatabaseJob:
+          useHelmHooks: false
+          applyCustomEnv: false
+          jobAnnotations:
+            "argocd.argoproj.io/hook": Sync
+
+        # DAGs – pulled from the mlops-k8s repo via the git-sync sidecar
+        dags:
+          gitSync:
+            enabled: true
+            repo: https://github.com/jeremyalbrecht/mlops-k8s.git
+            branch: main
+            rev: HEAD
+            depth: 1
+            maxFailures: 3
+            subPath: "dags/"
+            wait: 60
+
+        # Persistence for logs
+        logs:
+          persistence:
+            enabled: true
+            size: 5Gi
+            storageClassName: standard
+
+        data:
+          metadataConnection:
+            db: postgresql
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: airflow
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+
+
+
+
+
