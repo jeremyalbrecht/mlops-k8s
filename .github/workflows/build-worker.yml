@@ -1,0 +1,40 @@
+name: Build & Push Worker Image
+
+on:
+  push:
+    branches: ["master"]
+    paths:
+      - "worker/**"
+      - ".github/workflows/build-worker.yml"
+  workflow_dispatch:
+
+env:
+  IMAGE: ttl.sh/helical-mlops-worker
+
+jobs:
+  build-and-push:
+    name: Build multi-arch image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU (cross-compilation for arm64)
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # ttl.sh is an anonymous, ephemeral registry, no login required.
+      - name: Build & push (linux/amd64 + linux/arm64)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./worker
+          file: ./worker/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: 12h
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
