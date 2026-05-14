@@ -53,11 +53,6 @@ spec:
             enabled: true
             size: 5Gi
             storageClassName: standard
-
-        data:
-          metadataConnection:
-            db: postgresql
-
   destination:
     server: https://kubernetes.default.svc
     namespace: airflow
