@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: folder-applications
+  namespace: argocd
+spec:
+  generators:
+    - git:
+        repoURL: git@github.com:jeremyalbrecht/mlops-k8s.git
+        revision: HEAD
+        directories:
+          - path: applications/*
+  template:
+    metadata:
+      name: '{{path.basename}}'
+      labels:
+        app.kubernetes.io/managed-by: applicationset
+        app.kubernetes.io/name: '{{path.basename}}'
+    spec:
+      project: default
+      source:
+        repoURL: git@github.com:jeremyalbrecht/mlops-k8s.git
+        targetRevision: HEAD
+        path: '{{path}}'
+      destination:
+        server: https://kubernetes.default.svc  # For in-cluster deployment
+        namespace: 'argocd'  # Creates namespace based on folder name
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - PrunePropagationPolicy=foreground
+          - PruneLast=true
+          - ServerSideApply=true
+        preservedFields:
+          - spec.syncPolicy
+          - spec.ignoreDifferences
