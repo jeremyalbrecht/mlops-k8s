@@ -30,6 +30,7 @@ spec:
         config:
           rustfs:
             volumes: "/data"
+            domain: "s3.helical.dev"
 
         # Storage – use minikube's default "standard" StorageClass (hostPath)
         storageclass:
