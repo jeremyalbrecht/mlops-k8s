@@ -1,1 +1,0 @@
-minikube start --interactive=false --kubernetes-version=v1.35.1 --cpus=4 --memory=8192 --disk-size=30g

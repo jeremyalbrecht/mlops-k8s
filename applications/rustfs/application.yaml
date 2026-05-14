@@ -1,0 +1,51 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rustfs
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://charts.rustfs.com
+    chart: rustfs
+    targetRevision: 0.3.0
+    helm:
+      valuesObject:
+        # Standalone mode: single node, single drive
+        replicaCount: 1
+
+        mode:
+          standalone:
+            enabled: true
+          distributed:
+            enabled: false
+
+        # Credentials – allow insecure defaults for local/minikube dev
+        secret:
+          allowInsecureDefaults: true
+          rustfs:
+            access_key: "rustfsadmin"
+            secret_key: "rustfsadmin"
+
+        config:
+          rustfs:
+            volumes: "/data"
+
+        # Storage – use minikube's default "standard" StorageClass (hostPath)
+        storageclass:
+          name: standard
+          dataStorageSize: 10Gi
+          logStorageSize: 1Gi
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rustfs
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+

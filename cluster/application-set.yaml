@@ -6,7 +6,7 @@ metadata:
 spec:
   generators:
     - git:
-        repoURL: git@github.com:jeremyalbrecht/mlops-k8s.git
+        repoURL: https://github.com/jeremyalbrecht/mlops-k8s.git
         revision: HEAD
         directories:
           - path: applications/*
@@ -19,7 +19,7 @@ spec:
     spec:
       project: default
       source:
-        repoURL: git@github.com:jeremyalbrecht/mlops-k8s.git
+        repoURL: https://github.com/jeremyalbrecht/mlops-k8s.git
         targetRevision: HEAD
         path: '{{path}}'
       destination:
@@ -34,6 +34,3 @@ spec:
           - PrunePropagationPolicy=foreground
           - PruneLast=true
           - ServerSideApply=true
-        preservedFields:
-          - spec.syncPolicy
-          - spec.ignoreDifferences
