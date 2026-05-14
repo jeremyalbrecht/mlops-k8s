@@ -16,6 +16,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: airflow-webserver
+                name: airflow-helm-api-server
                 port:
                   number: 8080
