@@ -1,0 +1,19 @@
+jobs:
+  - job_id: "batch-demo-1"
+    batch_size: 256
+    model_name: "dummy-model1"
+    input_csv_path: "/data/input/reviews_batch_001.csv"
+    target_bucket: "/data/output/sentiment-results"
+
+  - job_id: "batch-demo-2"
+    batch_size: 128
+    model_name: "dummy-model2"
+    input_csv_path: "/data/input/images_batch_002.csv"
+    target_bucket: "/data/output/classification-results"
+
+  - job_id: "batch-demo-3"
+    batch_size: 64
+    model_name: "dummy-model3"
+    input_csv_path: "/data/input/articles_batch_003.csv"
+    target_bucket: "/data/output/ner-results"
+
