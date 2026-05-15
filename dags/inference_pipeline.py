@@ -59,7 +59,7 @@ DEFAULT_ARGS = {
 
 with DAG(
     dag_id="dummy_pipeline",
-    schedule_interval="0 2 * * *",   # nightly at 02:00 UTC
+    schedule="0 2 * * *",   # nightly at 02:00 UTC
     start_date=datetime(2025, 1, 1),
     catchup=False,                   # don't back-fill missed runs on first deploy
     default_args=DEFAULT_ARGS,
