@@ -13,15 +13,11 @@ spec:
       valuesObject:
         useStandardNaming: true
         executor: KubernetesExecutor
-        scheduler:
-          extraEnv:
-            - name: _PIP_EXTRA_REQUIREMENTS
-              value: "apache-airflow-providers-cncf-kubernetes==10.17.0"
 
-        podTemplate:
-          extraEnv:
-            - name: _PIP_EXTRA_REQUIREMENTS
-              value: "apache-airflow-providers-cncf-kubernetes==10.17.0"
+        extraEnv: |
+          - name: _PIP_EXTRA_REQUIREMENTS
+            value: "apache-airflow-providers-cncf-kubernetes==10.17.0"
+
         createUserJob:
           useHelmHooks: false
           applyCustomEnv: false
@@ -71,8 +67,3 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
-
-
-
-
-
