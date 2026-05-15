@@ -13,8 +13,13 @@ spec:
       valuesObject:
         useStandardNaming: true
         executor: KubernetesExecutor
-
-        # Create initial admin user via the recommended job
+        airflow:
+          kubernetesPodTemplate:
+            extraPipPackages:
+              - "apache-airflow-providers-cncf-kubernetes==10.17.0"
+        scheduler:
+          extraPipPackages:
+            - "apache-airflow-providers-cncf-kubernetes==10.17.0"
         createUserJob:
           useHelmHooks: false
           applyCustomEnv: false
