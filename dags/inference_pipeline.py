@@ -1,12 +1,9 @@
-import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
-
 
 import yaml
 from airflow.sdk import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
-    KubernetesPodOperator,
-)
+from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 from kubernetes.client import models as k8s
 
 _DAG_DIR = Path(__file__).parent
