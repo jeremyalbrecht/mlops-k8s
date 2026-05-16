@@ -1,0 +1,91 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: airflow-worker-sa
+  namespace: airflow
+  labels:
+    app.kubernetes.io/part-of: airflow
+    app.kubernetes.io/component: worker
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: airflow-worker-role
+  namespace: airflow
+  labels:
+    app.kubernetes.io/part-of: airflow
+    app.kubernetes.io/component: worker
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["create", "get", "list", "watch", "delete", "patch"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create", "get"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: airflow-worker-rolebinding
+  namespace: airflow
+  labels:
+    app.kubernetes.io/part-of: airflow
+    app.kubernetes.io/component: worker
+subjects:
+  - kind: ServiceAccount
+    name: airflow-worker-sa
+    namespace: airflow
+roleRef:
+  kind: Role
+  name: airflow-worker-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: airflow-scheduler-pod-launcher
+  namespace: airflow
+  labels:
+    app.kubernetes.io/part-of: airflow
+    app.kubernetes.io/component: scheduler
+rules:
+  - apiGroups: [""]
+    resources: ["serviceaccounts"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["create", "get", "list", "watch", "delete", "patch"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: airflow-scheduler-pod-launcher-binding
+  namespace: airflow
+  labels:
+    app.kubernetes.io/part-of: airflow
+    app.kubernetes.io/component: scheduler
+subjects:
+  - kind: ServiceAccount
+    name: airflow-scheduler
+    namespace: airflow
+roleRef:
+  kind: Role
+  name: airflow-scheduler-pod-launcher
+  apiGroup: rbac.authorization.k8s.io
+
