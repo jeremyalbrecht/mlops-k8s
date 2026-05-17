@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 import time
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
@@ -80,7 +81,8 @@ def run() -> None:
     output_bucket = config["output_bucket"]
 
     source_bucket, source_object = config["input_csv"].split("/", 1)
-    output_object = f"jobs/{job_id}/embeddings.npy"
+    run_ts = datetime.now().strftime("%d%m%Y%H%M")
+    output_object = f"jobs/{job_id}/{run_ts}/embeddings.npy"
 
     client = build_minio_client()
     ensure_bucket(client, output_bucket)
