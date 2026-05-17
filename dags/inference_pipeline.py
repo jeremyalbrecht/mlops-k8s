@@ -4,12 +4,11 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
-import asyncio
 
 import yaml
 from airflow.sdk import DAG, AsyncCallback, DeadlineAlert, DeadlineReference
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
-from airflow.utils.email import send_email
+from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 from kubernetes.client import models as k8s
 
 
@@ -111,23 +110,6 @@ def _parse_v1beta1(raw: dict) -> PipelineConfig:
     )
 
 
-async def deadline_alert_callback(**kwargs) -> None:
-    """Called by the Airflow triggerer when a DeadlineAlert interval is exceeded."""
-    dag_run = kwargs.get("context", {}).get("dag_run", {})
-    dag_id = dag_run.get("dag_id", "unknown")
-    dag_run_id = dag_run.get("dag_run_id", "unknown")
-    subject = f"[Airflow] Deadline missed — {dag_id}"
-    msg = (
-        f"<p>Deadline alert triggered for DAG <strong>{dag_id}</strong>.</p>"
-        f"<p>Run ID: {dag_run_id}</p>"
-    )
-    await asyncio.to_thread(
-        send_email, to=["me@jalbrecht.fr"], subject=subject, html_content=msg
-    )
-
-deadline_alert_callback.__module__ = "inference_pipeline"
-
-
 _PARSERS = {
     "mlops.helical.dev/v1alpha1": _parse_v1alpha1,
     "mlops.helical.dev/v1beta1": _parse_v1beta1,
@@ -180,7 +162,18 @@ for _dag_id, _spec_path in _SPEC_FILES:
         deadline=DeadlineAlert(
             reference=DeadlineReference.DAGRUN_QUEUED_AT,
             interval=timedelta(seconds=40),
-            callback=AsyncCallback(deadline_alert_callback),
+            callback=AsyncCallback(
+                SmtpNotifier,
+                kwargs={
+                    "to": "me@jalbrecht.fr",
+                    "subject": "[Airflow] Deadline missed - {{ dag_run.dag_id }}",
+                    "html_content": (
+                        "<p>Deadline alert triggered for DAG "
+                        "<strong>{{ dag_run.dag_id }}</strong>.</p>"
+                        "<p>Run ID: {{ dag_run.dag_run_id }}</p>"
+                    ),
+                },
+            ),
         ),
         dagrun_timeout=timedelta(hours=2),
         tags=["helical-mlops", _config.api_version.replace("/", "-")],
