@@ -110,6 +110,7 @@ def _parse_v1beta1(raw: dict) -> PipelineConfig:
         jobs=jobs,
     )
 
+
 async def deadline_alert_callback(**kwargs) -> None:
     """Called by the Airflow triggerer when a DeadlineAlert interval is exceeded."""
     dag_id = kwargs.get("dag_id", "unknown")
@@ -174,7 +175,7 @@ for _dag_id, _spec_path in _SPEC_FILES:
             "retries": _config.jobs[0].retries if _config.jobs else _DEFAULT_RETRIES,
         },
         deadline=DeadlineAlert(
-            reference=DeadlineReference.DAGRUN_LOGICAL_DATE,
+            reference=DeadlineReference.DAGRUN_QUEUED_AT,
             interval=timedelta(seconds=40),
             callback=AsyncCallback(deadline_alert_callback),
         ),
