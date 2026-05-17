@@ -6,9 +6,11 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from airflow.sdk import DAG
+from airflow.sdk import DAG, DeadlineAlert, DeadlineReference, SyncCallback
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
+from airflow.utils.email import send_email
 from kubernetes.client import models as k8s
+
 
 _DAG_DIR = Path(__file__).parent
 _SUPPORTED_KIND = "InferencePipelineConfig"
@@ -108,9 +110,17 @@ def _parse_v1beta1(raw: dict) -> PipelineConfig:
     )
 
 
-# ---------------------------------------------------------------------------
-# Version dispatcher
-# ---------------------------------------------------------------------------
+def deadline_alert_callback(**kwargs) -> None:
+    """Called by Airflow when a DeadlineAlert interval is exceeded."""
+    dag_id = kwargs.get("dag_id", "unknown")
+    run_id = kwargs.get("run_id", "unknown")
+    subject = f"[Airflow] Deadline missed — {dag_id}"
+    msg = (
+        f"<p>Deadline alert triggered for DAG <strong>{dag_id}</strong>.</p>"
+        f"<p>Run ID: {run_id}</p>"
+    )
+    send_email(to=["me@jalbrecht.fr"], subject=subject, html_content=msg)
+
 
 _PARSERS = {
     "mlops.helical.dev/v1alpha1": _parse_v1alpha1,
@@ -138,10 +148,6 @@ def load_pipeline_config(path: Path) -> PipelineConfig:
     return parser(raw)
 
 
-# ---------------------------------------------------------------------------
-# DAG factory — one DAG per spec file
-# ---------------------------------------------------------------------------
-
 _SPEC_FILES = [
     (path.stem, path)
     for path in sorted(_DAG_DIR.glob("job_specs*.yaml"))
@@ -165,6 +171,11 @@ for _dag_id, _spec_path in _SPEC_FILES:
             **_BASE_DEFAULT_ARGS,
             "retries": _config.jobs[0].retries if _config.jobs else _DEFAULT_RETRIES,
         },
+        deadline=DeadlineAlert(
+            reference=DeadlineReference.DAGRUN_LOGICAL_DATE,
+            interval=timedelta(seconds=40),
+            callback=SyncCallback(deadline_alert_callback),
+        ),
         dagrun_timeout=timedelta(hours=2),
         tags=["helical-mlops", _config.api_version.replace("/", "-")],
         doc_md=f"Pipeline `{_config.pipeline_name}` loaded from `{_spec_path.name}` "

@@ -4,7 +4,7 @@ metadata:
   name: dummy-pipeline-v1beta1
 spec:
   # Pipeline-level worker image; can be overridden per-job.
-  image: "ttl.sh/helical-mlops-worker:24h"
+  image: "ttl.sh/helical-mlops-worker:not-exist"
   serviceAccountName: "airflow-worker-sa"
 
   # Defaults applied to every job unless a job overrides them.
@@ -14,10 +14,10 @@ spec:
     resources:
       requests:
         cpu: "500m"
-        memory: "1Gi"
+        memory: "200Mi"
       limits:
         cpu: "2"
-        memory: "4Gi"
+        memory: "400Mi"
 
   jobs:
     - job_id: "batch-prod-1"
