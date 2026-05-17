@@ -12,7 +12,15 @@ spec:
     helm:
       valuesObject:
         useStandardNaming: true
-        executor: LocalKubernetesExecutor
+        # LocalKubernetesExecutor no longer exists in Airflow 3.x.
+        # Multi-executor mode: LocalExecutor handles internal Airflow workloads
+        # (e.g. DeadlineAlert callbacks); KubernetesExecutor handles pod-based tasks.
+        # Set via config to bypass Helm chart executor field parsing (avoids "::" prefix bug).
+        executor: LocalExecutor
+        config:
+          core:
+            # Comma-separated list activates Airflow 3.x multi-executor mode.
+            executor: "LocalExecutor,KubernetesExecutor"
 
         extraEnv: |
           - name: _PIP_EXTRA_REQUIREMENTS
