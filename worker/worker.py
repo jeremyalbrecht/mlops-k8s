@@ -74,7 +74,7 @@ def mocked_inference(df: pd.DataFrame, model_name: str, batch_size: int) -> np.n
 
 
 def run() -> None:
-    if random.rangrange(0,10) < 5:
+    if random.randrange(0,10) < 5:
         print("Simulating delay in execution to trigger SLA and Deadline alerts")
         time.sleep(60)
     config = load_config(os.environ.get("JOB_CONFIG_PATH", "/app/config/job_config.yaml"))
