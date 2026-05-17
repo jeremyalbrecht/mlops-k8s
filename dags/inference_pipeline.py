@@ -113,8 +113,9 @@ def _parse_v1beta1(raw: dict) -> PipelineConfig:
 
 async def deadline_alert_callback(**kwargs) -> None:
     """Called by the Airflow triggerer when a DeadlineAlert interval is exceeded."""
-    dag_id = kwargs.get("dag_id", "unknown")
-    dag_run_id = kwargs.get("dag_run_id", "unknown")
+    dag_run = kwargs.get("context", {}).get("dag_run", {})
+    dag_id = dag_run.get("dag_id", "unknown")
+    dag_run_id = dag_run.get("dag_run_id", "unknown")
     subject = f"[Airflow] Deadline missed — {dag_id}"
     msg = (
         f"<p>Deadline alert triggered for DAG <strong>{dag_id}</strong>.</p>"
@@ -123,6 +124,8 @@ async def deadline_alert_callback(**kwargs) -> None:
     await asyncio.to_thread(
         send_email, to=["me@jalbrecht.fr"], subject=subject, html_content=msg
     )
+
+deadline_alert_callback.__module__ = "inference_pipeline"
 
 
 _PARSERS = {
