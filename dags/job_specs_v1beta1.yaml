@@ -1,0 +1,54 @@
+apiVersion: mlops.helical.dev/v1beta1
+kind: InferencePipelineConfig
+metadata:
+  name: dummy-pipeline-v1beta1
+spec:
+  # Pipeline-level worker image; can be overridden per-job.
+  image: "ttl.sh/helical-mlops-worker:24h"
+  serviceAccountName: "airflow-worker-sa"
+
+  # Defaults applied to every job unless a job overrides them.
+  defaults:
+    retries: 2
+    timeoutMinutes: 45
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+      limits:
+        cpu: "2"
+        memory: "4Gi"
+
+  jobs:
+    - job_id: "batch-prod-1"
+      description: "High-throughput run for prod-model-v2 on the full dataset"
+      batch_size: 512
+      model_name: "prod-model-v2"
+      input_csv: "prod-bucket/input_full.csv"
+      output_bucket: "ml-outputs-prod"
+      # Override: this job is memory-heavy and needs more headroom.
+      resources:
+        requests:
+          cpu: "1"
+          memory: "2Gi"
+        limits:
+          cpu: "4"
+          memory: "8Gi"
+
+    - job_id: "batch-prod-2"
+      description: "Lightweight validation run for prod-model-v2 on a sample"
+      batch_size: 128
+      model_name: "prod-model-v2"
+      input_csv: "prod-bucket/input_sample.csv"
+      output_bucket: "ml-outputs-prod"
+      # Override: stricter timeout and extra retry for flaky downstream deps.
+      retries: 3
+      timeoutMinutes: 60
+
+    - job_id: "batch-prod-3"
+      description: "Experimental model canary — runs with defaults"
+      batch_size: 256
+      model_name: "canary-model-v1"
+      input_csv: "prod-bucket/input_canary.csv"
+      output_bucket: "ml-outputs-canary"
+

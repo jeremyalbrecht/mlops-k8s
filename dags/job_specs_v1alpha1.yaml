@@ -1,0 +1,24 @@
+apiVersion: mlops.helical.dev/v1alpha1
+kind: InferencePipelineConfig
+metadata:
+  name: dummy-pipeline-v1alpha1
+spec:
+  jobs:
+    - job_id: "batch-demo-1"
+      batch_size: 256
+      model_name: "dummy-model1"
+      input_csv: "demo-bucket/dummy_input.csv"
+      output_bucket: "ml-outputs"
+
+    - job_id: "batch-demo-2"
+      batch_size: 128
+      model_name: "dummy-model2"
+      input_csv: "demo-bucket/dummy_input.csv"
+      output_bucket: "ml-outputs"
+
+    - job_id: "batch-demo-3"
+      batch_size: 64
+      model_name: "dummy-model3"
+      input_csv: "demo-bucket/dummy_input.csv"
+      output_bucket: "ml-outputs"
+
