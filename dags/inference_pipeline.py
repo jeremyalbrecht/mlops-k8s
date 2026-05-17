@@ -7,7 +7,7 @@ from typing import Any
 import asyncio
 
 import yaml
-from airflow.sdk import DAG, DeadlineAlert, DeadlineReference
+from airflow.sdk import DAG, AsyncCallback, DeadlineAlert, DeadlineReference
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 from airflow.utils.email import send_email
 from kubernetes.client import models as k8s
@@ -177,7 +177,7 @@ for _dag_id, _spec_path in _SPEC_FILES:
         deadline=DeadlineAlert(
             reference=DeadlineReference.DAGRUN_QUEUED_AT,
             interval=timedelta(seconds=40),
-            callback=deadline_alert_callback,
+            callback=AsyncCallback(deadline_alert_callback),
         ),
         dagrun_timeout=timedelta(hours=2),
         tags=["helical-mlops", _config.api_version.replace("/", "-")],
