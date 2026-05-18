@@ -39,11 +39,6 @@ def build_minio_client() -> Minio:
     return Minio(endpoint, access_key=access_key, secret_key=secret_key, secure=use_tls)
 
 
-def ensure_bucket(client: Minio, bucket: str) -> None:
-    if not client.bucket_exists(bucket):
-        client.make_bucket(bucket)
-
-
 def download_csv(client: Minio, bucket: str, object_name: str) -> pd.DataFrame:
     response = client.get_object(bucket, object_name)
     data = response.read()
@@ -89,7 +84,6 @@ def run() -> None:
     output_object = f"jobs/{job_id}/{run_ts}/embeddings.npy"
 
     client = build_minio_client()
-    ensure_bucket(client, output_bucket)
     df = download_csv(client, source_bucket, source_object)
     embeddings = mocked_inference(df, model_name, batch_size)
     upload_npy(client, output_bucket, output_object, embeddings)
