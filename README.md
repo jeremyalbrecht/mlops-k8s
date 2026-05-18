@@ -1,4 +1,4 @@
-# MLOps Pipeline Orchestration with Kubernetes & Airflow — Platform Engineering Challenge
+# MLOps Pipeline Orchestration with Kubernetes & Airflow - Platform Engineering Challenge
 
 Batch inference pipeline on Minikube using Apache Airflow (KubernetesExecutor), ArgoCD (GitOps), and RustFS (S3-compatible object storage).
 
@@ -25,14 +25,14 @@ Batch inference pipeline on Minikube using Apache Airflow (KubernetesExecutor), 
 
 ## Repository Structure
 
-| Path | Contents                                                                                                                  |
-|------|---------------------------------------------------------------------------------------------------------------------------|
-| `applications/` | ArgoCD Application manifests for Airflow, RustFS, and ArgoCD itself. Each folder generates a new application in Argo.     |
-| `cluster/` | ArgoCD `ApplicationSet` — single entry point for the whole platform. One YAML that allows to automatically generate all.  |
-| `dags/` | DAG definition + versioned `InferencePipelineConfig` job specs                                                            |
-| `worker/` | Dockerfile, entrypoint, and inference logic                                                                               |
-| `scripts/` | Bootstrap (`start.sh`) and Terraform bucket provisioning (`tf_init.sh`)                                                   |
-| `terraform/` | OpenTofu config to create S3 buckets on RustFS                                                                            |
+| Path | Contents                                                                                                                |
+|------|-------------------------------------------------------------------------------------------------------------------------|
+| `applications/` | ArgoCD Application manifests for Airflow, RustFS, and ArgoCD itself. Each folder generates a new application in Argo.   |
+| `cluster/` | ArgoCD `ApplicationSet`: single entry point for the whole platform. One YAML that allows to automatically generate all. |
+| `dags/` | DAG definition + versioned `InferencePipelineConfig` job specs                                                          |
+| `worker/` | Dockerfile, entrypoint, and inference logic                                                                             |
+| `scripts/` | Bootstrap (`start.sh`) and Terraform bucket provisioning (`tf_init.sh`)                                                 |
+| `terraform/` | OpenTofu config to create S3 buckets on RustFS                                                                          |
 
 ## Prerequisites
 
@@ -51,7 +51,7 @@ bash scripts/start.sh
 This script:
 1. Starts Minikube with 4 CPUs / 8 GB RAM and enables the `ingress` add-on (required later to access the UIs)
 2. Installs ArgoCD in the `argocd` namespace
-3. Applies `cluster/application-set.yaml` — ArgoCD then automatically deploys **Airflow** and **RustFS** from this repository
+3. Applies `cluster/application-set.yaml`: ArgoCD then automatically deploys **Airflow** and **RustFS** from this repository
 
 Wait for all pods to be ready (~3–5 minutes):
 ```bash
@@ -102,7 +102,7 @@ sudo sh -c 'echo "127.0.0.1  airflow.helical.dev argocd.helical.dev s3.helical.d
 | Airflow | http://airflow.helical.dev | `admin` / `admin` |
 | ArgoCD | http://argocd.helical.dev | `admin` / `kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' \| base64 -d` |
 | RustFS Console | http://rustfs.helical.dev | `rustfsadmin` / `rustfsadmin` |
-| RustFS S3 API | http://s3.helical.dev | — |
+| RustFS S3 API | http://s3.helical.dev | - |
 
 
 ### 6. Upload sample data
@@ -114,8 +114,8 @@ sudo sh -c 'echo "127.0.0.1  airflow.helical.dev argocd.helical.dev s3.helical.d
 ### 7. Trigger the DAG
 
 In the Airflow UI, enable and trigger one of:
-- `job_specs_v1alpha1` — three simple batch jobs from `demo-bucket`.
-- `job_specs_v1beta1` — three production-style jobs with per-job resource/retry overrides but with a misconfigured image name.
+- `job_specs_v1alpha1` -> three simple batch jobs from `demo-bucket`.
+- `job_specs_v1beta1` -< three production-style jobs with per-job resource/retry overrides but with a misconfigured image name.
 
 ### 8. Trigger Deadline Alerts
 
@@ -141,7 +141,7 @@ The DAG uses `SmtpNotifier` to send an email when the deadline is breached. Conf
 
 **To trigger the alert:**
 
-The worker deliberately sleeps 60 seconds ~50% of the time, exceeding the 40-second `DeadlineAlert` window. Trigger `job_specs_v1alpha1` from the Airflow UI and wait — if the worker hits the slow path, the alert fires and you'll receive an email within seconds of the deadline breach.
+The worker deliberately sleeps 60 seconds ~50% of the time, exceeding the 40-second `DeadlineAlert` window. Trigger `job_specs_v1alpha1` from the Airflow UI and wait if the worker hits the slow path, the alert fires and you'll receive an email within seconds of the deadline breach.
 
 ## Observability
 
@@ -159,9 +159,9 @@ kubectl logs -f -n airflow <pod-name>
 ### Retry policy and deadline alerts
 
 Each DAG has:
-- **Per-task retries** — configured in the job spec (`retries` field, default `1`), with a 3-minute retry delay
-- **`dagrun_timeout`** — hard 2-hour cap on the entire DAG run
-- **`DeadlineAlert`** — Airflow 3 deadline configured at 40 seconds from queue time; triggers an email on breach (useful to catch stuck pods early)
+- **Per-task retries** - configured in the job spec (`retries` field, default `1`), with a 3-minute retry delay
+- **`dagrun_timeout`** - hard 2-hour cap on the entire DAG run
+- **`DeadlineAlert`** - Airflow 3 deadline configured at 40 seconds from queue time; triggers an email on breach (useful to catch stuck pods early)
 
 The worker deliberately sleeps 60 seconds ~50% of the time to trigger the deadline alert in demo runs.
 
@@ -171,7 +171,7 @@ The worker deliberately sleeps 60 seconds ~50% of the time to trigger the deadli
 
 ### RustFS instead of MinIO
 
-The assignment specified MinIO. This implementation uses [RustFS](https://rustfs.com), an S3-compatible object store written in Rust, API-compatible with MinIO's S3 and console interfaces. The worker uses the `minio` Python SDK pointed at the RustFS endpoint — no code change required. 
+The assignment specified MinIO. This implementation uses [RustFS](https://rustfs.com), an S3-compatible object store written in Rust, API-compatible with MinIO's S3 and console interfaces. The worker uses the `minio` Python SDK pointed at the RustFS endpoint - no code change required. 
 
 The reasoning: RustFS has a leaner footprint on Minikube, moreover I will not choose anymore MinIO as a solution if the company is not considering to pay for the licences. MiniIO is now in maintenance mode and the repo is read-only, in favor for their commercial solution.
 
@@ -192,11 +192,11 @@ The assignment implied bucket creation via scripts or Helm post-install hooks. U
 
 ### Versioned `InferencePipelineConfig` spec format
 
-The assignment asked for a flat job list in a config file or Airflow Variable. This implementation introduces a Kubernetes-inspired versioned manifest format (`mlops.helical.dev/v1alpha1` / `v1beta1`) for job specs. `v1beta1` adds pipeline-level defaults and per-job overrides for image, resources, retries, and timeout — making the format extensible without breaking existing specs. This allows for ML/AI Engineer to not need to perpetually update their Job specifications if the Platform Engineer updates it and allow for quickly delivering new features without breaking existing config.
+The assignment asked for a flat job list in a config file or Airflow Variable. This implementation introduces a Kubernetes-inspired versioned manifest format (`mlops.helical.dev/v1alpha1` / `v1beta1`) for job specs. `v1beta1` adds pipeline-level defaults and per-job overrides for image, resources, retries, and timeout, making the format extensible without breaking existing specs. This allows for ML/AI Engineer to not need to perpetually update their Job specifications if the Platform Engineer updates it and allow for quickly delivering new features without breaking existing config.
 
 ### `LocalExecutor + KubernetesExecutor` (dual executor)
 
-Airflow is configured with `executor: "LocalExecutor,KubernetesExecutor"`. Airflow 3 supports [hybrid executors](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/executor/index.html#hybrid-executor) — tasks annotated with `queue="kubernetes"` (the default for `KubernetesPodOperator`) run in pods; lightweight internal tasks can run locally. This is needed to allow for DeadlineAlerts to be sent. 
+Airflow is configured with `executor: "LocalExecutor,KubernetesExecutor"`. Airflow 3 supports [hybrid executors](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/executor/index.html#hybrid-executor) - tasks annotated with `queue="kubernetes"` (the default for `KubernetesPodOperator`) run in pods; lightweight internal tasks can run locally. This is needed to allow for DeadlineAlerts to be sent. 
 
 ### `DeadlineAlert` instead of `sla_miss_callback`
 
@@ -205,8 +205,8 @@ The assignment mentioned SLA miss configuration. `sla_miss_callback` is deprecat
 ### `k8s/` → `applications/` + `cluster/`
 
 The assignment expected a single `k8s/` directory. The implementation splits concerns:
-- `cluster/` — cluster-bootstrap level (ArgoCD ApplicationSet)
-- `applications/<app>/` — per-application manifests (Helm values, RBAC, Ingress, Secrets)
+- `cluster/` - cluster-bootstrap level (ArgoCD ApplicationSet)
+- `applications/<app>/` - per-application manifests (Helm values, RBAC, Ingress, Secrets)
 
 This matches the [App of Apps pattern](https://argo-cd.readthedocs.io/en/stable/operator-manual/cluster-bootstrapping/) recommended by ArgoCD.
 
@@ -214,7 +214,7 @@ This matches the [App of Apps pattern](https://argo-cd.readthedocs.io/en/stable/
 
 ## Potential Next Steps
 
-### 1. Bucket Access Permissions — Team-scoped Storage Isolation
+### 1. Bucket Access Permissions - Team-scoped Storage Isolation
 
 Currently all worker pods share the same `rustfs-s3-credentials` Secret, giving every job unrestricted access to every bucket. The target model is: **one team = one Git repository = one S3 bucket = one Kubernetes namespace**, with the pipeline enforcing that a job can only reach the bucket that belongs to its own namespace.
 
@@ -222,7 +222,7 @@ Currently all worker pods share the same `rustfs-s3-credentials` Secret, giving 
 
 - Create one namespace per team (e.g. `team-alpha`, `team-beta`).
 - Provision a dedicated RustFS bucket per team via a new Terraform module (extend `terraform/main.tf`). Generate a scoped access key/secret pair for each bucket using the [RustFS admin API](https://min.io/docs/minio/linux/administration/identity-access-management/policy-based-access-control.html) (API-compatible with MinIO IAM).
-- Store the scoped credentials in a `Secret` inside the team namespace. The `KubernetesPodOperator` in the DAG mounts `env_from` pointing at the Secret in its own namespace — if the Secret doesn't exist (because the bucket isn't in scope), the pod fails to start with a clear `CreateContainerConfigError`, making the access boundary explicit rather than silent.
+- Store the scoped credentials in a `Secret` inside the team namespace. The `KubernetesPodOperator` in the DAG mounts `env_from` pointing at the Secret in its own namespace. If the Secret doesn't exist (because the bucket isn't in scope), the pod fails to start with a clear `CreateContainerConfigError`, making the access boundary explicit rather than silent.
 - Enforce this at the RBAC level: the `airflow-worker-sa` `Role` (already scoped per namespace) only grants `get` on `secrets` within its own namespace, so cross-namespace Secret reads are impossible even if a DAG were misconfigured.
 
 ```
@@ -254,7 +254,7 @@ config:
     otel_port: "4318"
     otel_prefix: "airflow"
 ```
-This exposes counters and histograms for DAG run duration, task scheduling latency, and executor queue depth — without any code change.
+This exposes counters and histograms for DAG run duration, task scheduling latency, and executor queue depth without any code change.
 
 **Worker side:**  
 Instrument `worker.py` directly using the [OpenTelemetry Python SDK](https://opentelemetry.io/docs/languages/python/):
@@ -280,13 +280,13 @@ Custom metrics to add:
 | `airflow.dag.api_version` | Counter | Track `v1alpha1` vs `v1beta1` adoption across runs |
 | `worker.csv.row_count` | Histogram | Input data size distribution |
 
-Deploy an [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/) in the cluster (lightweight `otelcol-contrib` Helm chart) configured to export to Prometheus (for Grafana dashboards) and Tempo or Jaeger (for traces). All three - Airflow metrics, worker traces, and Kubernetes pod metrics - converge in a single observability stack.
+Deploy an [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/) in the cluster (lightweight `otelcol-contrib` Helm chart) configured to export to Prometheus (for Grafana dashboards) and Tempo or Jaeger (for traces). All three (Airflow metrics, worker traces, and Kubernetes pod metrics) converge in a single observability stack.
 
 ---
 
-### 3. Worker Image Security — Versioned Tags + Digest Pinning
+### 3. Worker Image Security / Versioned Tags + Digest Pinning
 
-The current DAG references `ttl.sh/helical-mlops-worker:12h` — an ephemeral registry with a mutable, time-limited tag. This is acceptable for a demo but is a supply chain risk in any environment beyond local development:
+The current DAG references `ttl.sh/helical-mlops-worker:12h` - an ephemeral registry with a mutable, time-limited tag. This is acceptable for a demo but is a supply chain risk in any environment beyond local development:
 
 - A mutable tag can be silently overwritten; the cluster may pull a different image than what was tested.
 - `ttl.sh` provides no image signing or provenance attestation.
@@ -319,7 +319,7 @@ Use [cosign](https://docs.sigstore.dev/cosign/signing/signing_with_containers/) 
 cosign sign --key cosign.key ghcr.io/jeremyalbrecht/helical-mlops-worker@sha256:abc123...
 cosign verify --key cosign.pub ghcr.io/jeremyalbrecht/helical-mlops-worker@sha256:abc123...
 ```
-Add a Kubernetes [admission webhook](https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/) (e.g. [Kyverno](https://kyverno.io/)) that rejects any pod whose image digest is not signed by the known key — preventing unsigned or tampered images from running even if someone bypasses CI.
+Add a Kubernetes [admission webhook](https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/) (e.g. [Kyverno](https://kyverno.io/)) that rejects any pod whose image digest is not signed by the known key, preventing unsigned or tampered images from running even if someone bypasses CI.
 
 **4. Automate base image updates:**  
 The Dockerfile uses `python:3.14-slim`. Add [Renovate](https://docs.renovatebot.com/) or [Dependabot](https://docs.github.com/en/code-security/dependabot) to the repository so base image upgrades (security patches) generate automatic PRs, keeping the attack surface minimal without manual tracking.
